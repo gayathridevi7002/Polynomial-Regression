@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Polynomial Regression – ML Project</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#f7f4ef;
+    --card:#ffffff;
+    --navy:#0d2b45;
+    --teal:#1a7f6e;
+    --accent:#e05c2a;
+    --muted:#6b7280;
+    --border:#d9d3c7;
+    --code-bg:#0d2b45;
+    --code-fg:#7ee8d4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(--navy);line-height:1.7}
+
+  /* ── NAV ── */
+  nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+  nav .logo{font-family:'Playfair Display',serif;font-size:1.15rem;color:#fff;padding:1rem 0;white-space:nowrap}
+  nav a{color:#9ecfc7;font-family:'IBM Plex Mono',monospace;font-size:.78rem;text-decoration:none;padding:.8rem .4rem;border-bottom:2px solid transparent;transition:all .2s}
+  nav a:hover{color:#fff;border-bottom-color:var(--teal)}
+
+  /* ── HERO ── */
+  .hero{background:var(--navy);color:#fff;padding:4rem 2rem 3.5rem;text-align:center;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 110%,#1a7f6e33,transparent)}
+  .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.4rem);letter-spacing:-.02em;position:relative}
+  .hero p{color:#9ecfc7;margin-top:.75rem;font-style:italic;font-size:1.05rem;position:relative}
+  .badge{display:inline-block;background:var(--teal);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:.25rem .75rem;border-radius:2rem;margin-bottom:1rem;letter-spacing:.06em}
+
+  /* ── SECTION ── */
+  section{max-width:900px;margin:0 auto;padding:3rem 1.5rem}
+  .sec-label{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--teal);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem}
+  h2{font-family:'Playfair Display',serif;font-size:1.9rem;margin-bottom:1.2rem;color:var(--navy)}
+  h3{font-family:'Playfair Display',serif;font-size:1.25rem;margin:1.6rem 0 .6rem;color:var(--navy)}
+  p{margin-bottom:.9rem;color:#1e3a52}
+
+  /* ── CARD ── */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.6rem 2rem;margin-bottom:1.4rem;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+
+  /* ── STEP BOXES ── */
+  .steps{counter-reset:step;display:flex;flex-direction:column;gap:1rem}
+  .step{display:flex;gap:1rem;align-items:flex-start}
+  .step-num{flex-shrink:0;width:2rem;height:2rem;background:var(--teal);color:#fff;border-radius:50%;display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:600;margin-top:.15rem}
+  .step-body{flex:1}
+  .step-body strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--accent);margin-bottom:.2rem}
+
+  /* ── FORMULA BOX ── */
+  .formula{background:var(--code-bg);color:var(--code-fg);font-family:'IBM Plex Mono',monospace;font-size:.88rem;padding:1rem 1.4rem;border-radius:8px;margin:.8rem 0;overflow-x:auto;line-height:1.8}
+
+  /* ── TABLE ── */
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:.8rem 0}
+  th{background:var(--navy);color:#fff;padding:.5rem .8rem;font-family:'IBM Plex Mono',monospace;font-size:.76rem;letter-spacing:.05em}
+  td{padding:.45rem .8rem;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace}
+  tr:nth-child(even) td{background:#f0ece4}
+
+  /* ── VIDEO ── */
+  .video-wrap{position:relative;padding-bottom:56.25%;height:0;border-radius:10px;overflow:hidden;border:2px solid var(--border)}
+  .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%}
+
+  /* ── REFS ── */
+  .ref-item{display:flex;gap:1rem;padding:.85rem 0;border-bottom:1px solid var(--border)}
+  .ref-icon{flex-shrink:0;width:2.2rem;height:2.2rem;background:var(--teal);border-radius:6px;display:grid;place-items:center;color:#fff;font-size:1rem}
+  .ref-item a{color:var(--teal);text-decoration:none;font-size:.9rem}
+  .ref-item a:hover{text-decoration:underline}
+  .ref-meta{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-top:.1rem}
+
+  /* ── INTERACTIVE ── */
+  .tabs{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+  .tab-btn{font-family:'IBM Plex Mono',monospace;font-size:.78rem;padding:.45rem 1.1rem;border:2px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;transition:all .2s;color:var(--navy)}
+  .tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+  .tab-panel{display:none}.tab-panel.active{display:block}
+
+  textarea,input[type=number],select{width:100%;padding:.55rem .8rem;border:1.5px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:.84rem;background:#fff;color:var(--navy);transition:border .2s;margin:.3rem 0}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--teal)}
+  label{font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--muted);display:block;margin-top:.7rem}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  @media(max-width:560px){.row2{grid-template-columns:1fr}}
+
+  .btn{font-family:'IBM Plex Mono',monospace;font-size:.82rem;padding:.6rem 1.5rem;border:none;border-radius:6px;cursor:pointer;transition:all .2s;font-weight:600}
+  .btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:#166358}
+  .btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:#c44e22}
+  .btn-sm{padding:.4rem 1rem;font-size:.76rem}
+
+  .chart-wrap{position:relative;height:340px;margin-top:1.2rem}
+
+  /* ── STEP LOG ── */
+  #stepLog{background:var(--code-bg);color:#d1f5ec;font-family:'IBM Plex Mono',monospace;font-size:.78rem;padding:1.2rem;border-radius:8px;max-height:320px;overflow-y:auto;line-height:1.9;white-space:pre-wrap;margin-top:1rem}
+  #stepLog .hi{color:#f9c74f}
+  #stepLog .ok{color:#90be6d}
+  #stepLog .dim{color:#6b9e94}
+
+  /* ── RESULTS ── */
+  #results{margin-top:1rem}
+  .metric{display:inline-flex;flex-direction:column;background:var(--navy);color:#fff;border-radius:8px;padding:.7rem 1.3rem;margin:.3rem;font-family:'IBM Plex Mono',monospace}
+  .metric span{font-size:.68rem;color:#9ecfc7;letter-spacing:.08em}
+  .metric strong{font-size:1.1rem}
+
+  .divider{border:none;border-top:2px solid var(--border);margin:0}
+  .tag{display:inline-block;background:#e8f5f2;color:var(--teal);border:1px solid #aed7d0;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:.15rem .55rem;margin:.15rem}
+
+  /* ── DOWNLOADS TAB ── */
+  .dl-section{margin-bottom:1.4rem}
+  .dl-section-title{font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:.6rem;border-bottom:1px solid var(--border);padding-bottom:.35rem}
+  .dl-btn-group{display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.6rem}
+  .dl-btn{font-family:'IBM Plex Mono',monospace;font-size:.76rem;padding:.5rem 1.1rem;border-radius:6px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--navy);transition:all .2s;display:flex;align-items:center;gap:.45rem;font-weight:600}
+  .dl-btn:hover{border-color:var(--teal);color:var(--teal);background:#f0faf8}
+  .dl-btn.accent{background:var(--teal);color:#fff;border-color:var(--teal)}.dl-btn.accent:hover{background:#166358}
+  .dl-preview-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:.6rem 0;max-height:220px;overflow-y:auto;display:block}
+  .dl-preview-table th{background:var(--navy);color:#fff;padding:.4rem .7rem;font-family:'IBM Plex Mono',monospace;font-size:.72rem;position:sticky;top:0}
+  .dl-preview-table td{padding:.38rem .7rem;border-bottom:1px solid var(--border);font-family:'IBM Plex Mono',monospace}
+  .dl-preview-table tr:nth-child(even) td{background:#f0ece4}
+  .dl-summary-grid{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+  .dl-chip{background:var(--navy);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:.4rem .9rem;border-radius:6px;display:flex;flex-direction:column}
+  .dl-chip span{color:#9ecfc7;font-size:.62rem;letter-spacing:.07em}
+  .notify-badge{display:inline-block;background:#e05c2a;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.65rem;border-radius:2rem;padding:.1rem .5rem;margin-left:.4rem;vertical-align:middle;animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+  .scroll reveal{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s}
+  .reveal.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">PolyReg</div>
+  <a href="#concept">Concept</a>
+  <a href="#example">Example</a>
+  <a href="#video">Video</a>
+  <a href="#interactive">Try It</a>
+  <a href="#interactive" onclick="setTimeout(()=>switchTab('downloads'),100)" id="navDownloads" style="color:#f9c74f;border-bottom-color:transparent">⬇ Downloads</a>
+  <a href="#refs">References</a>
+  <a href="#credits">Developed By</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge">Category 2 · Machine Learning</div>
+  <h1>Polynomial Regression</h1>
+  <p>Fitting curves to data — beyond the straight line</p>
+</div>
+
+<!-- ═══════════════ CONCEPT ═══════════════ -->
+<section id="concept">
+  <div class="sec-label">Section 01</div>
+  <h2>Concept Description</h2>
+
+  <div class="card">
+    <h3>Definition</h3>
+    <p><strong>Polynomial Regression</strong> is a supervised machine learning algorithm that models the relationship between an independent variable <em>x</em> and a dependent variable <em>y</em> as an <em>n</em>th-degree polynomial. It extends simple linear regression by allowing the regression curve to be a polynomial rather than a straight line, enabling it to capture non-linear patterns in data.</p>
+    <div class="formula">y = β₀ + β₁x + β₂x² + β₃x³ + ... + βₙxⁿ + ε
+
+Where:
+  β₀, β₁, ..., βₙ  →  coefficients (learned from data)
+  n               →  degree of the polynomial
+  ε               →  error term (noise)</div>
+  </div>
+
+  <div class="card">
+    <h3>Purpose</h3>
+    <p>Real-world data rarely follows a perfectly straight line. Polynomial regression allows us to fit curved models that better represent the underlying pattern — like how temperature varies with time of day, how a car's braking distance increases with speed, or how a plant grows over weeks.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">
+      <span class="tag">Non-linear modelling</span>
+      <span class="tag">Curve fitting</span>
+      <span class="tag">Predictive analytics</span>
+      <span class="tag">Scientific modelling</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Step-by-Step Explanation</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Collect Data</strong>Gather pairs of (x, y) observations. For example, hours studied vs exam score.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Choose Degree (n)</strong>Decide the polynomial degree. Degree 1 = straight line; Degree 2 = parabola; higher degrees = more complex curves.</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Feature Transformation</strong>Transform x into a feature matrix: X = [1, x, x², x³, …, xⁿ]. This converts the problem into a linear regression in the transformed feature space.</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Set Up Normal Equations</strong>Use the Ordinary Least Squares (OLS) method: compute the design matrix X and find coefficients β = (XᵀX)⁻¹ Xᵀy.</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><strong>Solve for Coefficients</strong>Solve the normal equations to get the best-fit coefficients β₀, β₁, …, βₙ that minimise the Sum of Squared Errors (SSE).</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><strong>Predict & Evaluate</strong>Use the fitted polynomial to predict ŷ for new x values. Evaluate using R², MSE, or RMSE.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Important Parameters</h3>
+    <table>
+      <tr><th>Parameter</th><th>Symbol</th><th>Description</th></tr>
+      <tr><td>Degree</td><td>n</td><td>Controls complexity of the curve. Higher = more flexible but risks overfitting.</td></tr>
+      <tr><td>Coefficients</td><td>β₀…βₙ</td><td>Weights learned by the model via OLS.</td></tr>
+      <tr><td>Design Matrix</td><td>X</td><td>Matrix of polynomial features [1, x, x², …, xⁿ].</td></tr>
+      <tr><td>MSE</td><td>—</td><td>Mean Squared Error — average of squared differences between actual and predicted.</td></tr>
+      <tr><td>R² Score</td><td>R²</td><td>Proportion of variance explained by the model. Closer to 1 is better.</td></tr>
+      <tr><td>Overfitting</td><td>—</td><td>When degree is too high, model fits noise rather than the true pattern.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Real-World Applications</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num" style="background:#e05c2a">⚡</div><div class="step-body"><strong>Engineering</strong>Modelling stress-strain curves, heat dissipation, and fluid dynamics.</div></div>
+      <div class="step"><div class="step-num" style="background:#6c63ff">🌱</div><div class="step-body"><strong>Biology / Medicine</strong>Growth curves, drug response curves, epidemic modelling.</div></div>
+      <div class="step"><div class="step-num" style="background:#e59800">📈</div><div class="step-body"><strong>Finance</strong>Stock trend analysis, option pricing models.</div></div>
+      <div class="step"><div class="step-num" style="background:#1a7f6e">🚗</div><div class="step-body"><strong>Automotive</strong>Speed vs. braking distance, fuel efficiency curves.</div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ═══════════════ WORKED EXAMPLE ═══════════════ -->
+<section id="example">
+  <div class="sec-label">Section 02</div>
+  <h2>Step-by-Step Worked Example</h2>
+  <p>Let's walk through polynomial regression by hand using a small dataset with <strong>Degree = 2</strong>. Each step below shows exactly what the algorithm does — from raw data to final predictions.</p>
+
+  <!-- GOAL BANNER -->
+  <div style="background:linear-gradient(135deg,#0d2b45,#1a4a35);border-radius:12px;padding:1.4rem 1.8rem;margin-bottom:1.4rem;color:#fff">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:#9ecfc7;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem">🎯 Goal</div>
+    <div style="font-size:1.05rem;font-style:italic;color:#e8f5f2">Find the best-fit curve <strong style="color:#f9c74f">ŷ = β₀ + β₁x + β₂x²</strong> through 5 data points, so predictions are as close to actual y-values as possible.</div>
+  </div>
+
+  <!-- STEP 0: DATASET -->
+  <div class="card" style="border-left:4px solid var(--teal)">
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+      <div style="background:var(--teal);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:20px">DATA</div>
+      <h3 style="margin:0">The Dataset</h3>
+    </div>
+    <p>We have 5 observations. Notice the pattern: y is roughly x² + 1. The algorithm doesn't know this yet — it will figure it out from the numbers alone.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.8rem">
+      <div>
+        <table>
+          <tr><th>x (Input)</th><th>y (Output)</th><th>Pattern hint</th></tr>
+          <tr><td>1</td><td>2</td><td style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal)">1² + 1 = 2 ✓</td></tr>
+          <tr><td>2</td><td>5</td><td style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal)">2² + 1 = 5 ✓</td></tr>
+          <tr><td>3</td><td>10</td><td style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal)">3² + 1 = 10 ✓</td></tr>
+          <tr><td>4</td><td>17</td><td style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal)">4² + 1 = 17 ✓</td></tr>
+          <tr><td>5</td><td>26</td><td style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--teal)">5² + 1 = 26 ✓</td></tr>
+        </table>
+      </div>
+      <div style="background:#f7f4ef;border-radius:8px;padding:1rem;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--muted);margin-bottom:.4rem">TRUE UNDERLYING PATTERN</div>
+        <div style="font-size:1.15rem;font-family:'IBM Plex Mono',monospace;color:var(--navy);font-weight:700">y = x² + 1</div>
+        <div style="font-size:.8rem;color:var(--muted);margin-top:.4rem">The algorithm will recover exactly this — with β₀=1, β₁=0, β₂=1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: DESIGN MATRIX -->
+  <div class="card" style="border-left:4px solid #6c63ff">
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+      <div style="background:#6c63ff;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:20px">STEP 1</div>
+      <h3 style="margin:0">Build the Design Matrix <em>X</em></h3>
+    </div>
+    <p>For each data point, we expand its x-value into a row of polynomial features: <strong>[1, x, x²]</strong>. The column of 1s handles the intercept β₀.</p>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:.8rem;align-items:center;margin-top:.8rem">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-bottom:.4rem">ORIGINAL DATA</div>
+        <table>
+          <tr><th>x</th><th>y</th></tr>
+          <tr><td>1</td><td>2</td></tr>
+          <tr><td>2</td><td>5</td></tr>
+          <tr><td>3</td><td>10</td></tr>
+          <tr><td>4</td><td>17</td></tr>
+          <tr><td>5</td><td>26</td></tr>
+        </table>
+      </div>
+      <div style="font-size:1.8rem;color:var(--teal);text-align:center">→</div>
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-bottom:.4rem">DESIGN MATRIX X &nbsp;[1, x, x²]</div>
+        <table>
+          <tr><th>1 (bias)</th><th>x</th><th>x²</th></tr>
+          <tr><td style="color:var(--muted)">1</td><td>1</td><td style="color:#6c63ff;font-weight:700">1</td></tr>
+          <tr><td style="color:var(--muted)">1</td><td>2</td><td style="color:#6c63ff;font-weight:700">4</td></tr>
+          <tr><td style="color:var(--muted)">1</td><td>3</td><td style="color:#6c63ff;font-weight:700">9</td></tr>
+          <tr><td style="color:var(--muted)">1</td><td>4</td><td style="color:#6c63ff;font-weight:700">16</td></tr>
+          <tr><td style="color:var(--muted)">1</td><td>5</td><td style="color:#6c63ff;font-weight:700">25</td></tr>
+        </table>
+      </div>
+    </div>
+    <div style="background:#f0ece4;border-radius:6px;padding:.7rem 1rem;margin-top:.8rem;font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--navy)">
+      💡 <strong>Why add 1s?</strong> The constant column lets the formula have an intercept (β₀). Without it, the curve would always pass through the origin.
+    </div>
+  </div>
+
+  <!-- STEP 2: XTX and XTy -->
+  <div class="card" style="border-left:4px solid var(--accent)">
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+      <div style="background:var(--accent);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:20px">STEP 2</div>
+      <h3 style="margin:0">Compute Xᵀ X and Xᵀ y</h3>
+    </div>
+    <p>We transpose X and multiply to "summarise" the data into a compact 3×3 system. This is the core of the <strong>Ordinary Least Squares (OLS)</strong> method.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:.8rem">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-bottom:.4rem">XᵀX &nbsp;(3×3 matrix)</div>
+        <div class="formula" style="font-size:.82rem">| 5    15    55  |
+| 15   55   225  |
+| 55   225  979  |</div>
+        <div style="font-size:.78rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:.3rem">Each cell is the dot product of two columns of X</div>
+      </div>
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-bottom:.4rem">Xᵀy &nbsp;(3×1 vector)</div>
+        <div class="formula" style="font-size:.82rem">| 60  |
+| 228 |
+| 900 |</div>
+        <div style="font-size:.78rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:.3rem">Each value = column of X dotted with y</div>
+      </div>
+    </div>
+    <div style="background:#fef3ee;border:1px solid #f4c2a8;border-radius:6px;padding:.7rem 1rem;margin-top:.8rem;font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:#8b3a1a">
+      🔢 <strong>Verification example:</strong> XᵀX[0][0] = 1²+1²+1²+1²+1² = <strong>5</strong>&nbsp; · &nbsp;XᵀX[1][1] = 1²+2²+3²+4²+5² = <strong>55</strong>
+    </div>
+  </div>
+
+  <!-- STEP 3: SOLVE -->
+  <div class="card" style="border-left:4px solid #e59800">
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+      <div style="background:#e59800;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:20px">STEP 3</div>
+      <h3 style="margin:0">Solve β = (Xᵀ X)⁻¹ Xᵀ y</h3>
+    </div>
+    <p>We invert XᵀX and multiply by Xᵀy using <strong>Gaussian elimination</strong>. This gives us the 3 coefficients that minimise the total squared error.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-top:1rem">
+      <div style="background:#0d2b45;border-radius:8px;padding:1rem;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:#9ecfc7;margin-bottom:.4rem">β₀ (INTERCEPT)</div>
+        <div style="font-size:1.6rem;font-weight:700;color:#f9c74f;font-family:'IBM Plex Mono',monospace">1.0</div>
+        <div style="font-size:.72rem;color:#7ee8d4;margin-top:.3rem;font-family:'IBM Plex Mono',monospace">constant term</div>
+      </div>
+      <div style="background:#0d2b45;border-radius:8px;padding:1rem;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:#9ecfc7;margin-bottom:.4rem">β₁ (coeff of x)</div>
+        <div style="font-size:1.6rem;font-weight:700;color:#f9c74f;font-family:'IBM Plex Mono',monospace">≈ 0</div>
+        <div style="font-size:.72rem;color:#7ee8d4;margin-top:.3rem;font-family:'IBM Plex Mono',monospace">linear term = none</div>
+      </div>
+      <div style="background:#0d2b45;border-radius:8px;padding:1rem;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:#9ecfc7;margin-bottom:.4rem">β₂ (coeff of x²)</div>
+        <div style="font-size:1.6rem;font-weight:700;color:#f9c74f;font-family:'IBM Plex Mono',monospace">1.0</div>
+        <div style="font-size:.72rem;color:#7ee8d4;margin-top:.3rem;font-family:'IBM Plex Mono',monospace">quadratic term</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:1rem;padding:1rem;background:#f7f4ef;border-radius:8px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--muted);margin-bottom:.3rem">FITTED MODEL</div>
+      <div style="font-size:1.25rem;font-family:'IBM Plex Mono',monospace;color:var(--navy);font-weight:700">ŷ = 1.0 + 0·x + 1.0·x²&nbsp; → &nbsp;<span style="color:var(--teal)">ŷ = 1 + x²</span></div>
+    </div>
+  </div>
+
+  <!-- STEP 4: PREDICTIONS -->
+  <div class="card" style="border-left:4px solid var(--teal)">
+    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.9rem">
+      <div style="background:var(--teal);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.8rem;font-weight:700;padding:.3rem .9rem;border-radius:20px">STEP 4</div>
+      <h3 style="margin:0">Predictions vs Actual — Verify the Fit</h3>
+    </div>
+    <p>Plug each x back into ŷ = 1 + x² and compare with the actual y. The error column shows how far off each prediction is.</p>
+    <table style="margin-top:.8rem">
+      <tr><th>x</th><th>Actual y</th><th>ŷ = 1 + x²</th><th>Error (y − ŷ)</th><th>Result</th></tr>
+      <tr><td>1</td><td>2</td><td>1 + 1 = <strong>2</strong></td><td style="color:var(--teal);font-weight:700">0</td><td>✅ Perfect</td></tr>
+      <tr><td>2</td><td>5</td><td>1 + 4 = <strong>5</strong></td><td style="color:var(--teal);font-weight:700">0</td><td>✅ Perfect</td></tr>
+      <tr><td>3</td><td>10</td><td>1 + 9 = <strong>10</strong></td><td style="color:var(--teal);font-weight:700">0</td><td>✅ Perfect</td></tr>
+      <tr><td>4</td><td>17</td><td>1 + 16 = <strong>17</strong></td><td style="color:var(--teal);font-weight:700">0</td><td>✅ Perfect</td></tr>
+      <tr><td>5</td><td>26</td><td>1 + 25 = <strong>26</strong></td><td style="color:var(--teal);font-weight:700">0</td><td>✅ Perfect</td></tr>
+    </table>
+
+    <!-- Metrics result boxes -->
+    <div style="display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1rem">
+      <div style="background:#e8f5f2;border:2px solid var(--teal);border-radius:8px;padding:.7rem 1.2rem;text-align:center;flex:1;min-width:100px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)">R² SCORE</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--teal);font-family:'IBM Plex Mono',monospace">1.0</div>
+        <div style="font-size:.72rem;color:var(--muted)">Perfect fit</div>
+      </div>
+      <div style="background:#e8f5f2;border:2px solid var(--teal);border-radius:8px;padding:.7rem 1.2rem;text-align:center;flex:1;min-width:100px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)">MSE</div>
+        <div style="font-size:1.5rem;font-weight:700;color:var(--teal);font-family:'IBM Plex Mono',monospace">0.0</div>
+        <div style="font-size:.72rem;color:var(--muted)">Zero error</div>
+      </div>
+      <div style="background:#e8f5f2;border:2px solid var(--teal);border-radius:8px;padding:.7rem 1.2rem;text-align:center;flex:1;min-width:140px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)">EQUATION RECOVERED</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--teal);font-family:'IBM Plex Mono',monospace">ŷ = 1 + x²</div>
+        <div style="font-size:.72rem;color:var(--muted)">Matches true pattern</div>
+      </div>
+    </div>
+    <div style="background:#f7f4ef;border-radius:6px;padding:.7rem 1rem;margin-top:.8rem;font-size:.88rem">
+      <strong>🔑 Key takeaway:</strong> Degree-2 polynomial regression exactly recovered the quadratic pattern y = x² + 1 from the data, with no manual hints about the formula.
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ═══════════════ VIDEO ═══════════════ -->
+<section id="video">
+  <div class="sec-label">Section 03</div>
+  <h2>Video Explanation</h2>
+  <p>Watch this clear walkthrough of Polynomial Regression — covering intuition, math, and Python implementation.</p>
+  <div class="card" style="display:flex;align-items:center;gap:1.2rem;padding:1.4rem 1.8rem">
+    <div style="font-size:2.2rem;flex-shrink:0">📺</div>
+    <div>
+      <strong style="font-family:'IBM Plex Mono',monospace;font-size:.9rem;color:var(--navy);display:block;margin-bottom:.3rem">
+        "Polynomial Regression" — StatQuest with Josh Starmer
+      </strong>
+      <a href="https://www.youtube.com/watch?v=Q81RR3yKn30" target="_blank"
+         style="color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:.85rem;word-break:break-all">
+        https://www.youtube.com/watch?v=Q81RR3yKn30
+      </a>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--muted);margin-top:.3rem">
+        Click the link above to watch on YouTube ↗
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ═══════════════ INTERACTIVE ═══════════════ -->
+<section id="interactive">
+  <div class="sec-label">Section 04</div>
+  <h2>Interactive Playground</h2>
+  <p>Enter your own data, choose a polynomial degree, and watch the algorithm work step by step. Use the sliders for instant live updates.</p>
+
+  <div class="card">
+    <!-- DATA SOURCE TABS -->
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">① Choose Data Source</div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('manual')">✏️ Manual Entry</button>
+      <button class="tab-btn" onclick="switchTab('csv')">📂 Upload CSV</button>
+      <button class="tab-btn" onclick="switchTab('preset')">🎲 Preset Datasets</button>
+      <button class="tab-btn" id="downloadsTabBtn" onclick="switchTab('downloads')" style="border-color:var(--teal);color:var(--teal)">⬇️ Downloads</button>
+    </div>
+
+    <!-- MANUAL -->
+    <div id="tab-manual" class="tab-panel active">
+      <p style="font-size:.85rem;color:var(--muted)">Enter one (x, y) pair per line, separated by a comma. Example: <code>1, 2.5</code></p>
+      <textarea id="manualData" rows="7" placeholder="1, 2
+2, 5
+3, 10
+4, 17
+5, 26
+6, 37"></textarea>
+    </div>
+
+    <!-- CSV -->
+    <div id="tab-csv" class="tab-panel">
+      <p style="font-size:.85rem;color:var(--muted)">Upload a CSV file with two columns: first column = x, second column = y. No header needed (or one header row is fine).</p>
+      <input type="file" id="csvFile" accept=".csv" style="padding:.4rem 0;border:none;font-family:inherit;font-size:.85rem"/>
+      <div id="csvPreview" style="font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--muted);margin-top:.5rem"></div>
+    </div>
+
+    <!-- PRESET -->
+    <div id="tab-preset" class="tab-panel">
+      <label>Choose a preset dataset:</label>
+      <select id="presetSelect">
+        <option value="quadratic">Quadratic (y = x² + noise)</option>
+        <option value="cubic">Cubic (y = x³ − 5x + noise)</option>
+        <option value="sine">Sine wave approximation</option>
+        <option value="growth">Exponential-like growth</option>
+      </select>
+    </div>
+
+    <!-- DOWNLOADS -->
+    <div id="tab-downloads" class="tab-panel">
+      <div id="downloadsContent">
+        <div style="text-align:center;padding:2rem 1rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.82rem">
+          <div style="font-size:2.4rem;margin-bottom:.7rem">📊</div>
+          <div>Run a regression first to generate downloadable results.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② PARAMETERS with sliders -->
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin:1.2rem 0 .5rem">② Set Parameters</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+      <div>
+        <label>Polynomial Degree: <strong id="degreeDisplay" style="color:var(--teal);font-size:.95rem">2</strong></label>
+        <input type="range" id="degree" value="2" min="1" max="6" style="width:100%;accent-color:var(--teal);margin:.4rem 0;height:6px"/>
+        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)">
+          <span>1 (linear)</span><span>2 (quadratic)</span><span>3</span><span>4</span><span>5</span><span>6</span>
+        </div>
+        <div id="degreeHint" style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--accent);margin-top:.3rem">📐 Quadratic — parabola</div>
+      </div>
+      <div>
+        <label>Train / Test Split: <strong id="splitDisplay" style="color:var(--teal);font-size:.95rem">80%</strong> train</label>
+        <input type="range" id="splitPct" value="80" min="50" max="95" style="width:100%;accent-color:var(--teal);margin:.4rem 0;height:6px"/>
+        <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted)">
+          <span>50%</span><span>65%</span><span>80%</span><span>95%</span>
+        </div>
+        <div id="splitHint" style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--muted);margin-top:.3rem">20% reserved for testing</div>
+      </div>
+    </div>
+
+    <!-- ③ ACTION -->
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin:1.2rem 0 .5rem">③ Run Simulation</div>
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary" onclick="runRegression()" style="font-size:.9rem;padding:.7rem 2rem">▶ Run Polynomial Regression</button>
+      <button class="btn btn-sm" style="background:var(--border);color:var(--navy)" onclick="clearAll()">✕ Clear</button>
+      <button class="btn btn-sm" style="background:#f0f9f7;color:var(--teal);border:1.5px solid var(--teal)" onclick="loadExampleAndRun()">⚡ Quick Demo</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div id="progressWrap" style="display:none;margin-bottom:.8rem">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--muted);margin-bottom:.3rem" id="progressLabel">Running…</div>
+    <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+      <div id="progressBar" style="height:100%;background:var(--teal);width:0%;transition:width .3s ease;border-radius:4px"></div>
+    </div>
+  </div>
+
+  <!-- STEP LOG -->
+  <div class="card" id="stepCard" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+      <h3 style="margin:0">Step-by-Step Execution Log</h3>
+      <button onclick="document.getElementById('stepLog').style.display=document.getElementById('stepLog').style.display==='none'?'block':'none'" style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;background:var(--border);border:none;border-radius:4px;padding:.25rem .6rem;cursor:pointer">toggle</button>
+    </div>
+    <div id="stepLog">Waiting for input…</div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card" id="chartCard" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">
+      <h3 style="margin:0">Visualization</h3>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap" id="degreeCompare"></div>
+    </div>
+    <!-- Degree comparison quick buttons -->
+    <div id="compareBar" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem;align-items:center">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted)">Compare degree:</span>
+      <button class="btn btn-sm" onclick="overlayDegree(1)" style="padding:.25rem .7rem;background:#f7f4ef;border:1px solid var(--border);color:var(--navy)">d=1</button>
+      <button class="btn btn-sm" onclick="overlayDegree(2)" style="padding:.25rem .7rem;background:#f7f4ef;border:1px solid var(--border);color:var(--navy)">d=2</button>
+      <button class="btn btn-sm" onclick="overlayDegree(3)" style="padding:.25rem .7rem;background:#f7f4ef;border:1px solid var(--border);color:var(--navy)">d=3</button>
+      <button class="btn btn-sm" onclick="overlayDegree(5)" style="padding:.25rem .7rem;background:#f7f4ef;border:1px solid var(--border);color:var(--navy)">d=5</button>
+      <button class="btn btn-sm" onclick="clearOverlays()" style="padding:.25rem .7rem;background:var(--accent);color:#fff;border:none">clear overlays</button>
+    </div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+    <div id="chartCaption" style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);margin-top:.5rem;text-align:center"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results"></div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ═══════════════ REFERENCES ═══════════════ -->
+<section id="refs">
+  <div class="sec-label">Section 05</div>
+  <h2>Further Reading &amp; References</h2>
+
+  <div class="ref-item">
+    <div class="ref-icon">📘</div>
+    <div>
+      <strong>Textbook — Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow</strong>
+      <div class="ref-meta">Aurélien Géron, O'Reilly Media · Chapter 4: Training Models (Polynomial Regression)</div>
+      <a href="https://www.oreilly.com/library/view/hands-on-machine-learning/9781492032632/ch04.html" target="_blank">→ O'Reilly Chapter 4</a>
+    </div>
+  </div>
+
+  <div class="ref-item">
+    <div class="ref-icon">📗</div>
+    <div>
+      <strong>Textbook — Introduction to Statistical Learning (ISLR)</strong>
+      <div class="ref-meta">James, Witten, Hastie, Tibshirani · Chapter 7: Moving Beyond Linearity</div>
+      <a href="https://www.statlearning.com/" target="_blank">→ Free PDF at statlearning.com</a>
+    </div>
+  </div>
+
+  <div class="ref-item">
+    <div class="ref-icon">🌐</div>
+    <div>
+      <strong>Scikit-Learn Official Docs — Polynomial Features</strong>
+      <div class="ref-meta">sklearn.preprocessing.PolynomialFeatures</div>
+      <a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html" target="_blank">→ scikit-learn.org</a>
+    </div>
+  </div>
+
+  <div class="ref-item">
+    <div class="ref-icon">🎓</div>
+    <div>
+      <strong>Coursera — Machine Learning Specialization (Andrew Ng)</strong>
+      <div class="ref-meta">Week 2: Polynomial Regression &amp; Feature Engineering</div>
+      <a href="https://www.coursera.org/learn/machine-learning" target="_blank">→ coursera.org/learn/machine-learning</a>
+    </div>
+  </div>
+
+  <div class="ref-item">
+    <div class="ref-icon">📄</div>
+    <div>
+      <strong>GeeksforGeeks — Polynomial Regression</strong>
+      <div class="ref-meta">Tutorial with Python implementation and visualizations</div>
+      <a href="https://www.geeksforgeeks.org/python-implementation-of-polynomial-regression/" target="_blank">→ geeksforgeeks.org</a>
+    </div>
+  </div>
+
+  <div class="ref-item">
+    <div class="ref-icon">▶️</div>
+    <div>
+      <strong>YouTube — StatQuest: Polynomial Regression</strong>
+      <div class="ref-meta">Josh Starmer — clear visual explanation of polynomial fitting</div>
+      <a href="https://www.youtube.com/watch?v=Q81RR3yKn30" target="_blank">→ youtube.com/watch?v=Q81RR3yKn30</a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider"/>
+
+<!-- ═══════════════ DEVELOPED BY ═══════════════ -->
+<section id="credits" style="max-width:900px;margin:0 auto;padding:2.5rem 1.5rem">
+  <div class="sec-label">Developed By</div>
+  <h2>Developed By</h2>
+  <div class="card" style="display:flex;flex-wrap:wrap;gap:1.2rem;align-items:stretch;padding:1.8rem 2rem">
+
+    <div style="flex:1;min-width:200px;background:#f0f9f7;border:1.5px solid #aed7d0;border-radius:10px;padding:1.2rem 1.4rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.4rem">👩‍💻</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.82rem;font-weight:600;color:var(--navy)">GAYATHRIDEVI S</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--teal);margin-top:.2rem">24BYB1003</div>
+    </div>
+
+    <div style="flex:1;min-width:200px;background:#f0f9f7;border:1.5px solid #aed7d0;border-radius:10px;padding:1.2rem 1.4rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.4rem">👩‍💻</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.82rem;font-weight:600;color:var(--navy)">SOWJHANYA RE</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--teal);margin-top:.2rem">24BYB1174</div>
+    </div>
+
+    <div style="flex:1;min-width:200px;background:#0d2b45;border:1.5px solid #1a7f6e;border-radius:10px;padding:1.2rem 1.4rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.4rem">👨‍🏫</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.82rem;font-weight:600;color:#fff">PROF. SWAMINATHAN</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:#9ecfc7;margin-top:.2rem">Faculty Guide</div>
+    </div>
+
+  </div>
+</section>
+
+<div style="background:var(--navy);color:#9ecfc7;text-align:center;padding:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:.75rem">
+  Polynomial Regression · ML Project · Built with vanilla JS + Chart.js
+</div>
+
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
+<script>
+// ── Utility ─────────────────────────────────────────────────────────────────
+function parseManual(txt){
+  return txt.trim().split('\n').map(l=>{
+    const p=l.split(',');
+    if(p.length<2) return null;
+    const x=parseFloat(p[0]),y=parseFloat(p[1]);
+    return isNaN(x)||isNaN(y)?null:{x,y};
+  }).filter(Boolean);
+}
+
+function getPreset(name){
+  const noise=()=>(Math.random()-.5)*4;
+  const pts=[];
+  if(name==='quadratic'){for(let x=-4;x<=4;x+=.8)pts.push({x,y:x*x+noise()});}
+  else if(name==='cubic'){for(let x=-3;x<=3;x+=.6)pts.push({x,y:x*x*x-5*x+noise()});}
+  else if(name==='sine'){for(let x=0;x<=6.3;x+=.5)pts.push({x,y:Math.sin(x)*8+noise()});}
+  else{for(let x=0;x<=5;x+=.5)pts.push({x,y:Math.exp(x*.5)+noise()});}
+  return pts;
+}
+
+// ── Polynomial Regression (Ordinary Least Squares via Gaussian elimination) ─
+function buildDesign(xs,deg){
+  return xs.map(x=>{const row=[];for(let d=0;d<=deg;d++)row.push(Math.pow(x,d));return row;});
+}
+function transpose(M){return M[0].map((_,c)=>M.map(r=>r[c]));}
+function matMul(A,B){return A.map(row=>B[0].map((_,j)=>row.reduce((s,v,k)=>s+v*B[k][j],0)));}
+function matVecMul(A,v){return A.map(row=>row.reduce((s,a,j)=>s+a*v[j],0));}
+function solveLinear(A,b){
+  const n=b.length;
+  const M=A.map((row,i)=>[...row,b[i]]);
+  for(let col=0;col<n;col++){
+    let maxR=col;
+    for(let r=col+1;r<n;r++) if(Math.abs(M[r][col])>Math.abs(M[maxR][col])) maxR=r;
+    [M[col],M[maxR]]=[M[maxR],M[col]];
+    const piv=M[col][col];
+    if(Math.abs(piv)<1e-12) continue;
+    for(let r=0;r<n;r++){
+      if(r===col) continue;
+      const f=M[r][col]/piv;
+      for(let c=col;c<=n;c++) M[r][c]-=f*M[col][c];
+    }
+  }
+  return M.map((row,i)=>row[n]/row[i]);
+}
+function fitPoly(xs,ys,deg){
+  const X=buildDesign(xs,deg);
+  const Xt=transpose(X);
+  const XtX=matMul(Xt,X);
+  const Xty=matVecMul(Xt,ys);
+  return solveLinear(XtX,Xty);
+}
+function predict(coeffs,x){return coeffs.reduce((s,c,i)=>s+c*Math.pow(x,i),0);}
+function mse(ys,yhats){return ys.reduce((s,y,i)=>s+Math.pow(y-yhats[i],2),0)/ys.length;}
+function r2(ys,yhats){
+  const mean=ys.reduce((a,b)=>a+b,0)/ys.length;
+  const ss_tot=ys.reduce((s,y)=>s+Math.pow(y-mean,2),0);
+  const ss_res=ys.reduce((s,y,i)=>s+Math.pow(y-yhats[i],2),0);
+  return 1-ss_res/ss_tot;
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+let chartInst=null;
+let csvPoints=null;
+let lastRunData=null;
+let overlayDatasets=[];
+
+// ── Slider live feedback ──────────────────────────────────────────────────────
+const degreeHints = ['','📏 Linear — straight line','📐 Quadratic — parabola','〰️ Cubic — S-curve','〽️ Degree 4 — two bends','⚠️ Degree 5 — risk of overfitting','⛔ Degree 6 — likely overfitting!'];
+document.getElementById('degree').addEventListener('input', function(){
+  document.getElementById('degreeDisplay').textContent = this.value;
+  document.getElementById('degreeHint').textContent = degreeHints[+this.value] || '';
+});
+document.getElementById('splitPct').addEventListener('input', function(){
+  document.getElementById('splitDisplay').textContent = this.value + '%';
+  document.getElementById('splitHint').textContent = (100 - +this.value) + '% reserved for testing';
+});
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name){
+  const names=['manual','csv','preset','downloads'];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',names[i]===name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── CSV upload ────────────────────────────────────────────────────────────────
+document.getElementById('csvFile').addEventListener('change',function(){
+  const f=this.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const lines=e.target.result.trim().split('\n');
+    csvPoints=[];
+    for(const line of lines){
+      const p=line.split(',');
+      const x=parseFloat(p[0]),y=parseFloat(p[1]);
+      if(!isNaN(x)&&!isNaN(y)) csvPoints.push({x,y});
+    }
+    document.getElementById('csvPreview').textContent=
+      `✓ Loaded ${csvPoints.length} data points from "${f.name}"`;
+  };
+  r.readAsText(f);
+});
+
+// ── Quick demo loader ─────────────────────────────────────────────────────────
+function loadExampleAndRun(){
+  switchTab('preset');
+  document.getElementById('presetSelect').value='quadratic';
+  document.getElementById('degree').value=2;
+  document.getElementById('degreeDisplay').textContent='2';
+  document.getElementById('degreeHint').textContent=degreeHints[2];
+  runRegression();
+}
+
+// ── Progress bar helper ───────────────────────────────────────────────────────
+function setProgress(pct, label){
+  document.getElementById('progressWrap').style.display='block';
+  document.getElementById('progressBar').style.width = pct+'%';
+  if(label) document.getElementById('progressLabel').textContent = label;
+}
+function hideProgress(){
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('progressBar').style.width='0%';
+}
+
+// ── Main regression runner (step-by-step animated) ───────────────────────────
+let simRunning = false;
+
+async function runRegression(){
+  if(simRunning) return;
+
+  let activeTab=[...document.querySelectorAll('.tab-btn')].findIndex(b=>b.classList.contains('active'));
+  let pts;
+  if(activeTab===0){pts=parseManual(document.getElementById('manualData').value);}
+  else if(activeTab===1){pts=csvPoints||[];}
+  else if(activeTab===2){pts=getPreset(document.getElementById('presetSelect').value);}
+  else{
+    // downloads tab active — show message
+    alert('Please switch to Manual, CSV, or Preset tab to run a simulation.');
+    return;
+  }
+
+  if(pts.length<3){alert('Please provide at least 3 data points.');return;}
+
+  const deg=Math.min(6,Math.max(1,parseInt(document.getElementById('degree').value)||2));
+  const splitPct=Math.min(95,Math.max(50,parseInt(document.getElementById('splitPct').value)||80));
+
+  const shuffled=[...pts].sort(()=>Math.random()-.5);
+  const trainN=Math.max(deg+2,Math.round(shuffled.length*splitPct/100));
+  const trainPts=shuffled.slice(0,trainN);
+  const testPts=shuffled.slice(trainN);
+  const trainX=trainPts.map(p=>p.x),trainY=trainPts.map(p=>p.y);
+  const testX=testPts.map(p=>p.x),testY=testPts.map(p=>p.y);
+
+  const h=s=>`<span class="hi">${s}</span>`;
+  const ok=s=>`<span class="ok">${s}</span>`;
+  const dim=s=>`<span class="dim">${s}</span>`;
+  const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+  document.getElementById('stepCard').style.display='block';
+  document.getElementById('chartCard').style.display='none';
+  document.getElementById('results').innerHTML='';
+  const log=document.getElementById('stepLog');
+  log.innerHTML='';
+
+  const runBtn=document.querySelector('.btn-primary');
+  runBtn.disabled=true;
+  runBtn.textContent='⏳ Running…';
+  simRunning=true;
+  overlayDatasets=[];
+
+  function append(html){log.innerHTML+=html;log.scrollTop=log.scrollHeight;}
+
+  // Step 1
+  setProgress(10, '① Loading data…');
+  append(h('━━ STEP 1: DATA LOADING ━━')+'\n');
+  await delay(600);
+  append(`Total points   : ${pts.length}\n`);
+  await delay(300);
+  append(`Training points: ${trainN}  (${splitPct}%)\n`);
+  await delay(300);
+  append(`Test points    : ${testPts.length}  (${100-splitPct}%)\n\n`);
+  await delay(700);
+
+  // Step 2
+  setProgress(25, '② Feature transformation…');
+  append(h('━━ STEP 2: FEATURE TRANSFORMATION ━━')+'\n');
+  await delay(600);
+  append(`Polynomial degree: ${deg}\n`);
+  await delay(300);
+  append(`Features per sample: [1, x, x², ..., x^${deg}]\n`);
+  await delay(300);
+  append(`Design matrix X shape: ${trainN} × ${deg+1}\n\n`);
+  await delay(400);
+  append(dim('  Sample rows of design matrix X:\n'));
+  for(const p of trainPts.slice(0,4)){
+    const row=Array.from({length:deg+1},(_,d)=>p.x**d).map(v=>v.toFixed(3));
+    append(dim(`  x=${p.x.toFixed(2)} → [${row.join(', ')}]\n`));
+    await delay(250);
+  }
+  append('\n');
+  await delay(700);
+
+  // Step 3
+  setProgress(45, '③ Solving normal equations…');
+  append(h('━━ STEP 3: NORMAL EQUATIONS ━━')+'\n');
+  await delay(600);
+  append(`Solving: β = (XᵀX)⁻¹ Xᵀy\n`);
+  await delay(400);
+  append(dim('  Building design matrix X…\n'));
+  await delay(500);
+  append(dim('  Computing XᵀX…\n'));
+  await delay(500);
+  append(dim('  Computing Xᵀy…\n'));
+  await delay(500);
+  append(dim('  Running Gaussian elimination to invert XᵀX…\n\n'));
+  await delay(700);
+
+  const coeffs=fitPoly(trainX,trainY,deg);
+
+  // Step 4
+  setProgress(60, '④ Extracting coefficients…');
+  append(h('━━ STEP 4: COEFFICIENTS (β) ━━')+'\n');
+  await delay(500);
+  for(let i=0;i<coeffs.length;i++){
+    append(`  β${i} (x^${i}) = ${ok(coeffs[i].toFixed(6))}\n`);
+    await delay(280);
+  }
+  append('\n');
+  append(`  Polynomial: ŷ = ${coeffs.map((c,i)=>i===0?c.toFixed(4):`${c.toFixed(4)}·x^${i}`).join(' + ')}\n\n`);
+  await delay(800);
+
+  // Step 5
+  setProgress(75, '⑤ Computing training metrics…');
+  const trainYhat=trainX.map(x=>predict(coeffs,x));
+  const trainMSE=mse(trainY,trainYhat);
+  const trainR2=r2(trainY,trainYhat);
+
+  append(h('━━ STEP 5: TRAINING METRICS ━━')+'\n');
+  await delay(500);
+  append(`  MSE  (train) = ${ok(trainMSE.toFixed(5))}\n`);
+  await delay(300);
+  append(`  RMSE (train) = ${ok(Math.sqrt(trainMSE).toFixed(5))}\n`);
+  await delay(300);
+  append(`  R²   (train) = ${ok(trainR2.toFixed(6))}\n\n`);
+  await delay(700);
+
+  // Step 6
+  setProgress(85, '⑥ Evaluating on test set…');
+  let testMSE=null,testR2=null;
+  if(testPts.length>0){
+    const testYhat=testX.map(x=>predict(coeffs,x));
+    testMSE=mse(testY,testYhat);
+    testR2=r2(testY,testYhat);
+    append(h('━━ STEP 6: TEST METRICS ━━')+'\n');
+    await delay(500);
+    append(`  MSE  (test) = ${ok(testMSE.toFixed(5))}\n`);
+    await delay(300);
+    append(`  RMSE (test) = ${ok(Math.sqrt(testMSE).toFixed(5))}\n`);
+    await delay(300);
+    append(`  R²   (test) = ${ok(testR2.toFixed(6))}\n\n`);
+    await delay(700);
+  }
+
+  // Step 7
+  setProgress(93, '⑦ Generating predictions…');
+  append(h('━━ STEP 7: SAMPLE PREDICTIONS ━━')+'\n');
+  await delay(500);
+  append(dim('  x         actual    predicted  error\n'));
+  await delay(300);
+  for(const p of trainPts.slice(0,6)){
+    const yh=predict(coeffs,p.x);
+    const err=p.y-yh;
+    append(`  ${p.x.toFixed(3).padEnd(10)}${p.y.toFixed(3).padEnd(10)}${yh.toFixed(3).padEnd(11)}${err.toFixed(4)}\n`);
+    await delay(250);
+  }
+  await delay(600);
+  append('\n'+ok('✓ Regression complete.\n'));
+
+  // Chart
+  setProgress(100, '✓ Done!');
+  document.getElementById('chartCard').style.display='block';
+  const allX=pts.map(p=>p.x);
+  const xMin=Math.min(...allX),xMax=Math.max(...allX);
+  const curveX=Array.from({length:200},(_,i)=>xMin+(xMax-xMin)*i/199);
+  const curveY=curveX.map(x=>predict(coeffs,x));
+
+  const baseDatasets=[
+    {label:'Training data',data:trainPts,backgroundColor:'rgba(26,127,110,.75)',pointRadius:7,pointHoverRadius:9},
+    {label:'Test data',data:testPts,backgroundColor:'rgba(224,92,42,.75)',pointRadius:7,pointHoverRadius:9},
+    {label:`Degree ${deg} fit`,data:curveX.map((x,i)=>({x,y:curveY[i]})),
+     type:'line',borderColor:'#0d2b45',borderWidth:2.5,pointRadius:0,tension:0}
+  ];
+
+  if(chartInst) chartInst.destroy();
+  chartInst=new Chart(document.getElementById('mainChart'),{
+    type:'scatter',
+    data:{datasets:[...baseDatasets,...overlayDatasets]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{title:{display:true,text:'x',font:{family:"'IBM Plex Mono'"}}},
+              y:{title:{display:true,text:'y',font:{family:"'IBM Plex Mono'"}}}},
+      plugins:{legend:{position:'top'},
+               tooltip:{callbacks:{label:ctx=>`(${ctx.parsed.x.toFixed(2)}, ${ctx.parsed.y.toFixed(2)})`}}}}
+  });
+
+  document.getElementById('chartCaption').textContent =
+    `Degree ${deg} polynomial fit  ·  ${trainPts.length} training pts (green)  ·  ${testPts.length} test pts (orange)  ·  Train R² = ${trainR2.toFixed(4)}`;
+
+  // Results
+  const res=document.getElementById('results');
+  const r2Color = trainR2>0.95?'#1a7f6e':trainR2>0.8?'#e59800':'#e05c2a';
+  res.innerHTML=`
+    <div class="card" style="border-top:4px solid ${r2Color}">
+      <h3>Final Results</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:1rem">
+        <div class="metric"><span>DEGREE</span><strong>${deg}</strong></div>
+        <div class="metric"><span>TRAIN R²</span><strong style="color:${r2Color}">${trainR2.toFixed(4)}</strong></div>
+        <div class="metric"><span>TRAIN MSE</span><strong>${trainMSE.toFixed(4)}</strong></div>
+        <div class="metric"><span>TRAIN RMSE</span><strong>${Math.sqrt(trainMSE).toFixed(4)}</strong></div>
+        ${testMSE!==null?`<div class="metric"><span>TEST R²</span><strong>${testR2.toFixed(4)}</strong></div>
+        <div class="metric"><span>TEST MSE</span><strong>${testMSE.toFixed(4)}</strong></div>`:''}
+        <div class="metric"><span>DATA POINTS</span><strong>${pts.length}</strong></div>
+      </div>
+      <div style="background:#f7f4ef;border-radius:8px;padding:.8rem 1rem;font-size:.9rem">
+        ${trainR2>0.95?'✅ <strong>Excellent fit</strong> — the model explains over 95% of variance in training data.':
+          trainR2>0.8?'🟡 <strong>Good fit</strong> — consider trying a higher degree if the curve still looks off.':
+          '🔴 <strong>Poor fit</strong> — the model may need a higher degree or more data.'}
+        ${deg>=5?'<br>⚠️ <strong>High degree warning</strong> — watch out for overfitting on small datasets.':''}
+        ${testMSE!==null && testR2<trainR2-0.1?'<br>📉 <strong>Overfitting detected</strong> — test R² is significantly lower than train R². Try a lower degree.':''}
+      </div>
+      <div style="margin-top:.8rem">
+        <div style="font-family:\'IBM Plex Mono\',monospace;font-size:.76rem;color:var(--muted);margin-bottom:.3rem">FITTED EQUATION</div>
+        <div style="font-family:\'IBM Plex Mono\',monospace;font-size:.88rem;background:#0d2b45;color:#7ee8d4;padding:.6rem 1rem;border-radius:6px;overflow-x:auto;white-space:nowrap">
+          ŷ = ${coeffs.map((c,i)=>i===0?c.toFixed(4):`${c.toFixed(4)}·x^${i}`).join(' + ')}
+        </div>
+      </div>
+      <div style="margin-top:.8rem;display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn btn-sm" style="background:var(--teal);color:#fff" onclick="switchTab('downloads');document.getElementById('interactive').scrollIntoView({behavior:'smooth'})">⬇ View Downloads</button>
+        <button class="btn btn-sm" style="background:#f0f9f7;color:var(--teal);border:1.5px solid var(--teal)" onclick="runRegression()">🔄 Run Again (re-shuffle)</button>
+      </div>
+    </div>`;
+
+  runBtn.disabled=false;
+  runBtn.textContent='▶ Run Polynomial Regression';
+  simRunning=false;
+  setTimeout(hideProgress, 1200);
+
+  document.getElementById('stepCard').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Save for downloads
+  lastRunData={deg,pts,trainPts,testPts,coeffs,trainMSE,trainR2,testMSE,testR2,curveX,curveY};
+  populateDownloads(lastRunData);
+}
+
+// ── Degree overlay comparison ─────────────────────────────────────────────────
+const overlayColors=['#e59800','#6c63ff','#e05c2a','#e91e8c'];
+function overlayDegree(d){
+  if(!lastRunData){alert('Run regression first.');return;}
+  const {pts,trainPts}=lastRunData;
+  const trainX=trainPts.map(p=>p.x),trainY=trainPts.map(p=>p.y);
+  const allX=pts.map(p=>p.x);
+  const xMin=Math.min(...allX),xMax=Math.max(...allX);
+  const curveX=Array.from({length:200},(_,i)=>xMin+(xMax-xMin)*i/199);
+  const coeffs=fitPoly(trainX,trainY,d);
+  const curveY=curveX.map(x=>predict(coeffs,x));
+  const color=overlayColors[overlayDatasets.length%overlayColors.length];
+  overlayDatasets.push({
+    label:`d=${d} overlay`,
+    data:curveX.map((x,i)=>({x,y:curveY[i]})),
+    type:'line',borderColor:color,borderWidth:1.5,pointRadius:0,tension:0,borderDash:[4,3]
+  });
+  if(chartInst){
+    chartInst.data.datasets=[...chartInst.data.datasets.slice(0,3),...overlayDatasets];
+    chartInst.update();
+  }
+}
+function clearOverlays(){
+  overlayDatasets=[];
+  if(chartInst){
+    chartInst.data.datasets=chartInst.data.datasets.slice(0,3);
+    chartInst.update();
+  }
+}
+
+function clearAll(){
+  simRunning=false;
+  overlayDatasets=[];
+  const runBtn=document.querySelector('.btn-primary');
+  runBtn.disabled=false;
+  runBtn.textContent='▶ Run Polynomial Regression';
+  document.getElementById('stepCard').style.display='none';
+  document.getElementById('chartCard').style.display='none';
+  document.getElementById('results').innerHTML='';
+  hideProgress();
+  if(chartInst){chartInst.destroy();chartInst=null;}
+}
+
+// ── Downloads tab population ──────────────────────────────────────────────────
+function populateDownloads(data){
+  lastRunData = data;
+  const tabBtn = document.getElementById('downloadsTabBtn');
+  if(!tabBtn.querySelector('.notify-badge')){
+    tabBtn.innerHTML = '⬇️ Downloads <span class="notify-badge">NEW</span>';
+  }
+  const {deg, pts, trainPts, testPts, coeffs, trainMSE, trainR2, testMSE, testR2, curveX, curveY} = data;
+  const rmse = v => Math.sqrt(v);
+
+  const allPredRows = pts.map((p,i)=>{
+    const yh = predict(coeffs, p.x);
+    const isTrain = trainPts.some(t=>t.x===p.x&&t.y===p.y);
+    return {x:p.x, y:p.y, yhat:yh, err:(p.y-yh), split: isTrain?'train':'test'};
+  }).sort((a,b)=>a.x-b.x);
+
+  const container = document.getElementById('downloadsContent');
+  container.innerHTML = `
+  <div style="margin-bottom:.8rem;font-family:'IBM Plex Mono',monospace;font-size:.78rem;color:var(--muted)">
+    Results from last run — Degree ${deg} polynomial &nbsp;·&nbsp; ${pts.length} data points
+  </div>
+
+  <div class="dl-section">
+    <div class="dl-section-title">📈 Model Metrics</div>
+    <div class="dl-summary-grid">
+      <div class="dl-chip"><span>DEGREE</span>${deg}</div>
+      <div class="dl-chip"><span>TOTAL POINTS</span>${pts.length}</div>
+      <div class="dl-chip"><span>TRAIN R²</span>${trainR2.toFixed(6)}</div>
+      <div class="dl-chip"><span>TRAIN MSE</span>${trainMSE.toFixed(6)}</div>
+      <div class="dl-chip"><span>TRAIN RMSE</span>${rmse(trainMSE).toFixed(6)}</div>
+      ${testMSE!==null?`<div class="dl-chip"><span>TEST R²</span>${testR2.toFixed(6)}</div>
+      <div class="dl-chip"><span>TEST MSE</span>${testMSE.toFixed(6)}</div>
+      <div class="dl-chip"><span>TEST RMSE</span>${rmse(testMSE).toFixed(6)}</div>`:''}
+    </div>
+    <div class="dl-btn-group">
+      <button class="dl-btn accent" onclick="downloadMetricsCSV()">⬇ Download Metrics (.csv)</button>
+      <button class="dl-btn" onclick="downloadMetricsTXT()">⬇ Download Summary (.txt)</button>
+    </div>
+  </div>
+
+  <div class="dl-section">
+    <div class="dl-section-title">🔢 Polynomial Coefficients (β)</div>
+    <div style="overflow-x:auto">
+      <table class="dl-preview-table">
+        <thead><tr><th>Term</th><th>Coefficient</th></tr></thead>
+        <tbody>
+          ${coeffs.map((c,i)=>`<tr><td>β${i} (x^${i})</td><td>${c.toFixed(8)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:.76rem;color:var(--muted);margin:.4rem 0">
+      ŷ = ${coeffs.map((c,i)=>i===0?c.toFixed(4):`${c.toFixed(4)}·x^${i}`).join(' + ')}
+    </div>
+    <div class="dl-btn-group">
+      <button class="dl-btn accent" onclick="downloadCoeffsCSV()">⬇ Download Coefficients (.csv)</button>
+    </div>
+  </div>
+
+  <div class="dl-section">
+    <div class="dl-section-title">📋 Predictions Table (all ${pts.length} points)</div>
+    <div style="overflow-x:auto;max-height:220px;overflow-y:auto">
+      <table class="dl-preview-table">
+        <thead><tr><th>#</th><th>x</th><th>Actual y</th><th>Predicted ŷ</th><th>Error</th><th>Split</th></tr></thead>
+        <tbody>
+          ${allPredRows.map((r,i)=>`<tr>
+            <td>${i+1}</td>
+            <td>${r.x.toFixed(4)}</td>
+            <td>${r.y.toFixed(4)}</td>
+            <td>${r.yhat.toFixed(4)}</td>
+            <td style="color:${Math.abs(r.err)<0.5?'#1a7f6e':'#e05c2a'}">${r.err.toFixed(4)}</td>
+            <td><span style="font-size:.68rem;padding:.1rem .4rem;border-radius:3px;background:${r.split==='train'?'#e8f5f2':'#fef0eb'};color:${r.split==='train'?'#1a7f6e':'#e05c2a'}">${r.split}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="dl-btn-group">
+      <button class="dl-btn accent" onclick="downloadPredictionsCSV()">⬇ Download Predictions (.csv)</button>
+    </div>
+  </div>
+
+  <div class="dl-section">
+    <div class="dl-section-title">🖼️ Chart Export</div>
+    <p style="font-size:.8rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:.5rem">Export the regression chart as a PNG image.</p>
+    <div class="dl-btn-group">
+      <button class="dl-btn accent" onclick="downloadChartPNG()">⬇ Download Chart (.png)</button>
+    </div>
+  </div>
+
+  <div class="dl-section">
+    <div class="dl-section-title">📄 Full Report</div>
+    <p style="font-size:.8rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:.5rem">Download everything in one combined text report.</p>
+    <div class="dl-btn-group">
+      <button class="dl-btn accent" onclick="downloadFullReport()">⬇ Download Full Report (.txt)</button>
+    </div>
+  </div>
+  `;
+}
+
+// ── Download helpers ──────────────────────────────────────────────────────────
+function triggerDownload(filename, content, mime='text/plain'){
+  const blob = new Blob([content], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+
+function downloadMetricsCSV(){
+  const d = lastRunData;
+  if(!d) return;
+  const rmse = v => Math.sqrt(v);
+  let csv = 'Metric,Value\n';
+  csv += `Degree,${d.deg}\n`;
+  csv += `Total Points,${d.pts.length}\n`;
+  csv += `Training Points,${d.trainPts.length}\n`;
+  csv += `Test Points,${d.testPts.length}\n`;
+  csv += `Train R2,${d.trainR2.toFixed(8)}\n`;
+  csv += `Train MSE,${d.trainMSE.toFixed(8)}\n`;
+  csv += `Train RMSE,${rmse(d.trainMSE).toFixed(8)}\n`;
+  if(d.testMSE!==null){
+    csv += `Test R2,${d.testR2.toFixed(8)}\n`;
+    csv += `Test MSE,${d.testMSE.toFixed(8)}\n`;
+    csv += `Test RMSE,${rmse(d.testMSE).toFixed(8)}\n`;
+  }
+  triggerDownload('poly_regression_metrics.csv', csv, 'text/csv');
+}
+
+function downloadMetricsTXT(){
+  const d = lastRunData;
+  if(!d) return;
+  const rmse = v => Math.sqrt(v);
+  let txt = `POLYNOMIAL REGRESSION — RESULTS SUMMARY\n${'='.repeat(50)}\n`;
+  txt += `Degree          : ${d.deg}\n`;
+  txt += `Total Points    : ${d.pts.length}\n`;
+  txt += `Training Points : ${d.trainPts.length}\n`;
+  txt += `Test Points     : ${d.testPts.length}\n\n`;
+  txt += `TRAINING METRICS\n${'-'.repeat(30)}\n`;
+  txt += `R²   : ${d.trainR2.toFixed(8)}\n`;
+  txt += `MSE  : ${d.trainMSE.toFixed(8)}\n`;
+  txt += `RMSE : ${rmse(d.trainMSE).toFixed(8)}\n\n`;
+  if(d.testMSE!==null){
+    txt += `TEST METRICS\n${'-'.repeat(30)}\n`;
+    txt += `R²   : ${d.testR2.toFixed(8)}\n`;
+    txt += `MSE  : ${d.testMSE.toFixed(8)}\n`;
+    txt += `RMSE : ${rmse(d.testMSE).toFixed(8)}\n\n`;
+  }
+  txt += `POLYNOMIAL EQUATION\n${'-'.repeat(30)}\n`;
+  txt += `ŷ = ${d.coeffs.map((c,i)=>i===0?c.toFixed(6):`${c.toFixed(6)}·x^${i}`).join(' + ')}\n`;
+  triggerDownload('poly_regression_summary.txt', txt);
+}
+
+function downloadCoeffsCSV(){
+  const d = lastRunData;
+  if(!d) return;
+  let csv = 'Term,Exponent,Coefficient\n';
+  d.coeffs.forEach((c,i)=>{ csv += `beta_${i},${i},${c.toFixed(10)}\n`; });
+  triggerDownload('poly_regression_coefficients.csv', csv, 'text/csv');
+}
+
+function downloadPredictionsCSV(){
+  const d = lastRunData;
+  if(!d) return;
+  let csv = 'index,x,actual_y,predicted_y,error,split\n';
+  const rows = d.pts.map((p,i)=>{
+    const yh = predict(d.coeffs, p.x);
+    const isTrain = d.trainPts.some(t=>t.x===p.x&&t.y===p.y);
+    return {x:p.x, y:p.y, yhat:yh, err:(p.y-yh), split: isTrain?'train':'test'};
+  }).sort((a,b)=>a.x-b.x);
+  rows.forEach((r,i)=>{
+    csv += `${i+1},${r.x.toFixed(6)},${r.y.toFixed(6)},${r.yhat.toFixed(6)},${r.err.toFixed(6)},${r.split}\n`;
+  });
+  triggerDownload('poly_regression_predictions.csv', csv, 'text/csv');
+}
+
+function downloadChartPNG(){
+  const canvas = document.getElementById('mainChart');
+  if(!canvas){ alert('Run regression first to generate the chart.'); return; }
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url; a.download = 'poly_regression_chart.png'; a.click();
+}
+
+function downloadFullReport(){
+  const d = lastRunData;
+  if(!d) return;
+  const rmse = v => Math.sqrt(v);
+  let txt = `POLYNOMIAL REGRESSION — FULL REPORT\n${'='.repeat(60)}\n\n`;
+  txt += `DEGREE  : ${d.deg}\n`;
+  txt += `POINTS  : ${d.pts.length} total  |  ${d.trainPts.length} train  |  ${d.testPts.length} test\n\n`;
+  txt += `METRICS\n${'-'.repeat(40)}\n`;
+  txt += `Train R²   : ${d.trainR2.toFixed(8)}\n`;
+  txt += `Train MSE  : ${d.trainMSE.toFixed(8)}\n`;
+  txt += `Train RMSE : ${rmse(d.trainMSE).toFixed(8)}\n`;
+  if(d.testMSE!==null){
+    txt += `Test R²    : ${d.testR2.toFixed(8)}\n`;
+    txt += `Test MSE   : ${d.testMSE.toFixed(8)}\n`;
+    txt += `Test RMSE  : ${rmse(d.testMSE).toFixed(8)}\n`;
+  }
+  txt += `\nCOEFFICIENTS\n${'-'.repeat(40)}\n`;
+  d.coeffs.forEach((c,i)=>{ txt += `β${i} (x^${i}) = ${c.toFixed(10)}\n`; });
+  txt += `\nEquation: ŷ = ${d.coeffs.map((c,i)=>i===0?c.toFixed(4):`${c.toFixed(4)}·x^${i}`).join(' + ')}\n`;
+  txt += `\nPREDICTIONS TABLE\n${'-'.repeat(40)}\n`;
+  txt += `${'#'.padEnd(5)}${'x'.padEnd(12)}${'Actual y'.padEnd(12)}${'Pred ŷ'.padEnd(12)}${'Error'.padEnd(12)}Split\n`;
+  const rows = d.pts.map(p=>{
+    const yh = predict(d.coeffs, p.x);
+    const isTrain = d.trainPts.some(t=>t.x===p.x&&t.y===p.y);
+    return {x:p.x, y:p.y, yhat:yh, err:(p.y-yh), split: isTrain?'train':'test'};
+  }).sort((a,b)=>a.x-b.x);
+  rows.forEach((r,i)=>{
+    txt += `${String(i+1).padEnd(5)}${r.x.toFixed(4).padEnd(12)}${r.y.toFixed(4).padEnd(12)}${r.yhat.toFixed(4).padEnd(12)}${r.err.toFixed(4).padEnd(12)}${r.split}\n`;
+  });
+  triggerDownload('poly_regression_full_report.txt', txt);
+}
+
+// ── Scroll reveal ─────────────────────────────────────────────────────────────
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.1});
+document.querySelectorAll('.card,.ref-item').forEach(el=>{
+  el.classList.add('reveal');
+  observer.observe(el);
+});
+</script>
+</body>
+</html>

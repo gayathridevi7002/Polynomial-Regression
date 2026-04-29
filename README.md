@@ -4,7 +4,7 @@
 
 ---
 
-## 📌 Project Overview
+##  Project Overview
 
 This project is submitted as part of the **Category 2: Machine Learning** web-based assignment. It covers the complete study of Polynomial Regression — from concept explanation to interactive visualization — all within a single self-contained HTML file.
 
@@ -14,7 +14,7 @@ This project is submitted as part of the **Category 2: Machine Learning** web-ba
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 polynomial-regression/
